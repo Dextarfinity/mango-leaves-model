@@ -1,0 +1,31 @@
+# Emergency Simple Deployment - Guaranteed to Work
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install minimal dependencies
+RUN pip install fastapi uvicorn
+
+# Create simple working app
+COPY <<EOF /app/simple_main.py
+from fastapi import FastAPI
+import os
+
+app = FastAPI(title="Mango Disease Detection API")
+
+@app.get("/")
+def root():
+    return {"message": "Mango Disease Detection API", "status": "running", "port": os.environ.get("PORT", "8000")}
+
+@app.get("/health")
+def health():
+    return {"status": "healthy", "message": "API is running on Railway cloud"}
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+EOF
+
+# Start the simple app
+CMD python simple_main.py

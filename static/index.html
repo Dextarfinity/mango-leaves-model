@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mango Disease Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .upload-area {
+            border: 2px dashed #3498db;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            background-color: #ecf0f1;
+        }
+        #fileInput {
+            display: none;
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+        }
+        .detection-item {
+            background-color: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+        }
+        .error {
+            color: #e74c3c;
+            background-color: #fadbd8;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🥭 Mango Leaf Disease Detection</h1>
+        <p style="text-align: center; color: #7f8c8d;">Upload an image of a mango leaf to detect diseases</p>
+        
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <p>📸 Click here to select an image</p>
+            <p style="font-size: 12px; color: #7f8c8d;">Supported formats: JPG, PNG, JPEG</p>
+        </div>
+        
+        <input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)">
+        
+        <div id="imagePreview" style="text-align: center;"></div>
+        
+        <div style="text-align: center;">
+            <label for="confidence">Confidence Threshold: </label>
+            <input type="range" id="confidence" min="0.1" max="1.0" step="0.05" value="0.25">
+            <span id="confidenceValue">0.25</span>
+            <br><br>
+            <button class="btn" onclick="analyzeImage()">🔍 Analyze Image</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        
+        // Update confidence value display
+        document.getElementById('confidence').addEventListener('input', function() {
+            document.getElementById('confidenceValue').textContent = this.value;
+        });
+        
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').innerHTML = 
+                        `<img src="${e.target.result}" class="image-preview" alt="Preview">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        async function analyzeImage() {
+            if (!selectedFile) {
+                alert('Please select an image first!');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">🔄 Analyzing image...</div>';
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('conf_threshold', document.getElementById('confidence').value);
+                
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                displayResults(data);
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (data.results.num_detections === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="results">
+                        <h3>📊 Analysis Results</h3>
+                        <p>No diseases detected in the image. The leaf appears to be healthy! 🌱</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="results">
+                    <h3>📊 Analysis Results</h3>
+                    <p><strong>Detections found:</strong> ${data.results.num_detections}</p>
+                    <p><strong>Image size:</strong> ${data.results.image_shape.width}x${data.results.image_shape.height}px</p>
+            `;
+            
+            data.results.detections.forEach((detection, index) => {
+                const emoji = getEmojiForClass(detection.class_name);
+                const confidencePercent = (detection.confidence * 100).toFixed(1);
+                
+                html += `
+                    <div class="detection-item">
+                        <h4>${emoji} Detection ${index + 1}</h4>
+                        <p><strong>Disease:</strong> ${detection.class_name}</p>
+                        <p><strong>Confidence:</strong> ${confidencePercent}%</p>
+                        <p><strong>Location:</strong> x1=${detection.bbox.x1.toFixed(1)}, y1=${detection.bbox.y1.toFixed(1)}, x2=${detection.bbox.x2.toFixed(1)}, y2=${detection.bbox.y2.toFixed(1)}</p>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+        
+        function getEmojiForClass(className) {
+            switch(className) {
+                case 'Healthy': return '🌱';
+                case 'Die Back': return '🍂';
+                case 'Powder Mildew': return '🦠';
+                default: return '❓';
+            }
+        }
+        
+        // Drag and drop functionality
+        const uploadArea = document.querySelector('.upload-area');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.backgroundColor = '#ecf0f1';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.backgroundColor = '';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.backgroundColor = '';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('fileInput').files = files;
+                previewImage({ target: { files: files } });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# Railway Deployment Configuration
+# This file tells Railway how to build and run your application
+
+[build]
+builder = "DOCKERFILE"
+
+[deploy]
+startCommand = "python main.py"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"

@@ -1,11 +1,17 @@
 # Railway Deployment Configuration
-# This file tells Railway how to build and run your application
-
 [build]
 builder = "DOCKERFILE"
+# Increase build timeout for heavy ML dependencies
+buildCommand = "echo 'Building Mango Disease Detection API...'"
 
 [deploy]
-startCommand = "python main.py"
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
+
+# Resource configuration for ML workload
+[resources]
+# Request more memory for ML inference
+memory = "1GB"
+cpu = "1 vCPU"

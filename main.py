@@ -54,7 +54,7 @@ def load_model():
         model_paths = [
             "best.pt",  # Place your trained model here
             "yolo11n.pt",
-            "yolov8s.pt"
+            "yolov8n.pt"  # Use smaller model for faster loading
         ]
         
         for path in model_paths:
@@ -63,14 +63,21 @@ def load_model():
                 model = YOLO(path)
                 return model
         
-        # If no model found, use a default one
-        logger.warning("No trained model found, using YOLOv8n")
+        # If no model found, use the smallest default one for Railway
+        logger.warning("No trained model found, using YOLOv8n (smallest)")
         model = YOLO("yolov8n.pt")
         return model
         
     except Exception as e:
         logger.error(f"Error loading model: {e}")
-        raise e
+        # Fallback to basic YOLO model
+        try:
+            logger.info("Attempting fallback to basic YOLO model...")
+            model = YOLO("yolov8n.pt")
+            return model
+        except Exception as fallback_e:
+            logger.error(f"Fallback model loading failed: {fallback_e}")
+            raise e
 
 @app.on_event("startup")
 async def startup_event():

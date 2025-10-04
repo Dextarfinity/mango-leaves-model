@@ -4,6 +4,8 @@ A FastAPI-based REST API for detecting diseases in mango leaves using YOLO (You 
 
 ## 🚀 Quick Deploy to Railway
 
+⚠️ **Having build timeout issues?** See [TIMEOUT_FIX.md](TIMEOUT_FIX.md) for quick solutions!
+
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/mango-disease-detection)
 
 ## 📋 Features
@@ -195,7 +197,15 @@ CLASS_NAMES = {
 }
 ```
 
-## 🐛 Troubleshooting
+## � Troubleshooting
+
+### Build Timeout on Railway
+If your deployment times out during build:
+
+1. **Quick Fix**: Run `switch_to_fast.bat` to use optimized configuration
+2. **Manual Fix**: Use `Dockerfile.fast` and `requirements.fast.txt`
+3. **Alternative**: Use Railway CLI for deployment
+4. **Details**: See [TIMEOUT_FIX.md](TIMEOUT_FIX.md) for complete guide
 
 ### Common Issues
 
@@ -205,6 +215,7 @@ CLASS_NAMES = {
 
 2. **Build fails on Railway**:
    - Check that all files are uploaded to GitHub
+   - Try the fast configuration for quicker builds
    - Verify `requirements.txt` has correct dependencies
 
 3. **Predictions not working**:

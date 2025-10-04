@@ -1,0 +1,15 @@
+# Core FastAPI dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Image processing (lighter versions)
+Pillow==10.0.1
+numpy==1.24.3
+
+# YOLO (use lighter opencv version)
+ultralytics==8.0.196
+opencv-python-headless==4.8.1.78
+
+# Optional dependencies (removed to reduce build time)
+aiofiles==23.2.1

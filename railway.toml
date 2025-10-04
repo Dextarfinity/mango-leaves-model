@@ -1,17 +1,8 @@
 # Railway Deployment Configuration
 [build]
 builder = "DOCKERFILE"
-# Increase build timeout for heavy ML dependencies
-buildCommand = "echo 'Building Mango Disease Detection API...'"
 
 [deploy]
-startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
 healthcheckPath = "/health"
-healthcheckTimeout = 300
+healthcheckTimeout = 180
 restartPolicyType = "ON_FAILURE"
-
-# Resource configuration for ML workload
-[resources]
-# Request more memory for ML inference
-memory = "1GB"
-cpu = "1 vCPU"

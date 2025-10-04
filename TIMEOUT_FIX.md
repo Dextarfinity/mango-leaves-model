@@ -1,11 +1,48 @@
-# 🚨 Railway Build Timeout - Quick Fix Guide
+# 🚨 Railway Deployment Issues - Complete Fix Guide
 
-## The Problem
-Your Railway deployment is timing out during the Docker build process. This is common with ML applications due to large dependencies.
+## Issue 1: Build Timeout ✅ SOLVED
+Your Railway deployment was timing out during the Docker build process.
 
-## 🛠️ Quick Solutions
+## Issue 2: Health Check Failure 🔄 CURRENT ISSUE
+Build completed successfully (109 seconds) but health checks are failing.
 
-### Option 1: Use the Fast Dockerfile (Recommended)
+## 🛠️ Solutions
+
+### ✅ Build Timeout (SOLVED)
+Build now completes in ~109 seconds using the fast configuration.
+
+### 🔄 Health Check Failure (CURRENT)
+
+**Problem**: App builds but Railway health checks fail with "service unavailable"
+
+**Root Causes**:
+1. Port binding issues with Railway's dynamic PORT
+2. Model loading errors during startup  
+3. Health endpoint not responding correctly
+
+**Solution - Apply These Fixes**:
+
+1. **Run the fix script**:
+   ```bash
+   fix_health_check.bat
+   ```
+
+2. **Manual fixes applied**:
+   - ✅ Fixed port binding in Dockerfile
+   - ✅ Enhanced error handling in main.py
+   - ✅ Simplified railway.toml
+   - ✅ Added debug logging
+
+3. **Commit and redeploy**:
+   ```bash
+   git add .
+   git commit -m "Fix Railway health check issues"
+   git push
+   ```
+
+### Backup Option: Debug Mode
+
+If health checks still fail, try debug mode:
 
 1. **Rename files**:
    ```bash

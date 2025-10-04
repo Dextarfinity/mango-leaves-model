@@ -82,8 +82,13 @@ def load_model():
 @app.on_event("startup")
 async def startup_event():
     """Load model on startup"""
-    load_model()
-    logger.info("Model loaded successfully")
+    try:
+        load_model()
+        logger.info("Model loaded successfully")
+    except Exception as e:
+        logger.error(f"Failed to load model: {e}")
+        # Don't crash the app, let it start without model for debugging
+        logger.warning("App starting without model - check /health endpoint")
 
 @app.get("/")
 async def root():
@@ -106,11 +111,21 @@ async def api_info():
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "model_loaded": model is not None,
-        "classes": CLASS_NAMES
-    }
+    try:
+        return {
+            "status": "healthy",
+            "model_loaded": model is not None,
+            "classes": CLASS_NAMES,
+            "message": "Mango Disease Detection API is running"
+        }
+    except Exception as e:
+        logger.error(f"Health check error: {e}")
+        return {
+            "status": "degraded",
+            "model_loaded": False,
+            "error": str(e),
+            "message": "API is running but model may not be loaded"
+        }
 
 def process_image(image_bytes: bytes) -> Image.Image:
     """Process uploaded image bytes"""
@@ -310,4 +325,5 @@ async def predict_base64_image(
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    logger.info(f"Starting server on port {port}")
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")

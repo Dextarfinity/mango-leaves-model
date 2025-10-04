@@ -25,5 +25,5 @@ RUN mkdir -p /app/uploads /app/temp
 # Expose port
 EXPOSE 8000
 
-# Use uvicorn for production
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use uvicorn for production with Railway's PORT variable
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
